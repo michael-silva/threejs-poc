@@ -1,0 +1,43 @@
+{
+  "name": "threejs-poc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server --open",
+    "build": "webpack --prod",
+    "lint": "eslint src",
+    "lint:fix": "npm run lint -- --fix",
+    "test": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michael-silva/threejs-poc.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/michael-silva/threejs-poc/issues"
+  },
+  "homepage": "https://github.com/michael-silva/threejs-poc#readme",
+  "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "@babel/preset-env": "^7.4.4",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.5",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-import-resolver-webpack": "^0.12.1",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^1.19.1",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.1",
+    "webpack-dev-server": "^3.3.1"
+  },
+  "dependencies": {
+    "three": "^0.113.1"
+  }
+}
