@@ -7,10 +7,12 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import globals from './globals';
 import { GameObjectManager, InputManager, CameraInfo } from './utils';
 import { Player } from './game-object';
+import { Animal } from './components';
 
 function main() {
   const canvas = document.querySelector('#canvas');
   const renderer = new THREE.WebGLRenderer({ canvas });
+  globals.canvas = canvas;
 
   const fov = 45;
   const aspect = 2; // the canvas default
@@ -61,12 +63,21 @@ function main() {
   }
 
   function prepModelsAndAnimations() {
+    const box = new THREE.Box3();
+    const size = new THREE.Vector3();
     Object.values(models).forEach((model) => {
+      box.setFromObject(model.gltf.scene);
+      box.getSize(size);
+      model.size = size.length();
       const animsByName = {};
       console.log('------->:', model.url);
       model.gltf.animations.forEach((clip) => {
         animsByName[clip.name] = clip;
         console.log('  ', clip.name);
+        // Should really fix this in .blend file
+        if (clip.name === 'Walk') {
+          clip.duration /= 2;
+        }
       });
       model.animations = animsByName;
     });
@@ -81,13 +92,29 @@ function main() {
 
     {
       const gameObject = gameObjectManager.createGameObject(scene, 'player');
-      gameObject.addComponent(Player);
+      globals.player = gameObject.addComponent(Player);
+      globals.congaLine = [gameObject];
     }
 
     {
       const gameObject = gameObjectManager.createGameObject(camera, 'camera');
       globals.cameraInfo = gameObject.addComponent(CameraInfo);
     }
+
+    const animalModelNames = [
+      'pig',
+      'cow',
+      'llama',
+      'pug',
+      'sheep',
+      'zebra',
+      'horse',
+    ];
+    animalModelNames.forEach((name, ndx) => {
+      const gameObject = gameObjectManager.createGameObject(scene, name);
+      gameObject.addComponent(Animal, models[name]);
+      gameObject.transform.position.x = (ndx + 1) * 5;
+    });
   }
 
   function resizeRendererToDisplaySize(renderer) {

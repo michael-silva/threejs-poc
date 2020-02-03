@@ -4,95 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>Three.js POC</title>
-  <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-    }
-    #canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-    #loading {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: xx-large;
-  font-family: sans-serif;
-}
-#loading>div>div {
-  padding: 2px;
-}
-.progress {
-  width: 50vw;
-  border: 1px solid black;
-}
-#progressbar {
-  width: 0;
-  transition: width ease-out .5s;
-  height: 1em;
-  background-color: #888;
-  background-image: linear-gradient(
-    -45deg, 
-    rgba(255, 255, 255, .5) 25%, 
-    transparent 25%, 
-    transparent 50%, 
-    rgba(255, 255, 255, .5) 50%, 
-    rgba(255, 255, 255, .5) 75%, 
-    transparent 75%, 
-    transparent
-  );
-  background-size: 50px 50px;
-  animation: progressanim 2s linear infinite;
-}
- 
-@keyframes progressanim {
-  0% {
-    background-position: 50px 50px;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}
-
-#ui {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-items: center;
-  align-content: stretch;
-}
-#ui>div {
-  display: flex;
-  align-items: flex-end;
-  flex: 1 1 auto;
-}
-.bright {
-  filter: brightness(2);
-}
-#left {
-  justify-content: flex-end;
-}
-#right {
-  justify-content: flex-start;
-}
-#ui img {
-  padding: 10px;
-  width: 80px;
-  height: 80px;
-  display: block;
-}
-  </style>
+  <link href="index.css" rel="stylesheet" />
 </head>
 <body>
     <canvas id="canvas"></canvas>
@@ -108,6 +20,8 @@
         <div class="progress"><div id="progressbar"></div></div>
       </div>
     </div>
+
+    <div id="labels"></div>
     <script src="./index.js" ></script>
 </body>
 </html>

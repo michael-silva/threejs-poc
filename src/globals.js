@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 export default {
+  debug: true,
   time: 0,
   deltaTime: 0,
   moveSpeed: 16,

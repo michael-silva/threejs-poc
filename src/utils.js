@@ -1,7 +1,51 @@
 import * as THREE from 'three';
-import { GameObject } from './game-object';
 import globals from './globals';
-import { Component } from './components';
+
+function removeArrayElement(array, element) {
+  const ndx = array.indexOf(element);
+  if (ndx >= 0) {
+    array.splice(ndx, 1);
+  }
+}
+
+export class GameObject {
+  constructor(parent, name) {
+    this.name = name;
+    this.components = [];
+    this.transform = new THREE.Object3D();
+    parent.add(this.transform);
+  }
+
+  addComponent(ComponentType, ...args) {
+    const component = new ComponentType(this, ...args);
+    this.components.push(component);
+    return component;
+  }
+
+  removeComponent(component) {
+    removeArrayElement(this.components, component);
+  }
+
+  getComponent(ComponentType) {
+    return this.components.find((c) => c instanceof ComponentType);
+  }
+
+  update(...args) {
+    this.components.forEach((component) => {
+      component.update(...args);
+    });
+  }
+}
+
+// Base for all components
+export class Component {
+  constructor(gameObject) {
+    this.gameObject = gameObject;
+  }
+
+  update() {
+  }
+}
 
 export class SafeArray {
   constructor() {
@@ -211,6 +255,36 @@ export class CameraInfo extends Component {
       camera.projectionMatrix,
       camera.matrixWorldInverse,
     );
-    this.frustum.setFromMatrix(this.projScreenMatrix);
+    this.frustum.setFromProjectionMatrix(this.projScreenMatrix);
+  }
+}
+
+export class FiniteStateMachine {
+  constructor(states, initialState) {
+    this.states = states;
+    this.transition(initialState);
+  }
+
+  get state() {
+    return this.currentState;
+  }
+
+  transition(state) {
+    const oldState = this.states[this.currentState];
+    if (oldState && oldState.exit) {
+      oldState.exit.call(this);
+    }
+    this.currentState = state;
+    const newState = this.states[state];
+    if (newState.enter) {
+      newState.enter.call(this);
+    }
+  }
+
+  update() {
+    const state = this.states[this.currentState];
+    if (state.update) {
+      state.update.call(this);
+    }
   }
 }
