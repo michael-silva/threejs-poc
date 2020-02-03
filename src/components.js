@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { GUI } from 'dat.gui';
 import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 import globals from './globals';
-import { FiniteStateMachine, Component } from './utils';
+import {
+  FiniteStateMachine, Component, CoroutineRunner, rand,
+} from './utils';
 
 export class SkinInstance extends Component {
   constructor(gameObject, model) {
@@ -212,5 +214,52 @@ export class Animal extends Component {
     this.fsm.update();
     const dir = THREE.Math.radToDeg(this.gameObject.transform.rotation.y);
     this.helper.setState(`${this.fsm.state}:${dir.toFixed(0)}`);
+  }
+}
+
+function makeTextTexture(str) {
+  const ctx = document.createElement('canvas').getContext('2d');
+  ctx.canvas.width = 64;
+  ctx.canvas.height = 64;
+  ctx.font = '60px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#FFF';
+  ctx.fillText(str, ctx.canvas.width / 2, ctx.canvas.height / 2);
+  return new THREE.CanvasTexture(ctx.canvas);
+}
+const noteTexture = makeTextTexture('♪');
+
+export class Note extends Component {
+  constructor(gameObject) {
+    super(gameObject);
+    const { transform } = gameObject;
+    const noteMaterial = new THREE.SpriteMaterial({
+      color: new THREE.Color().setHSL(rand(1), 1, 0.5),
+      map: noteTexture,
+      side: THREE.DoubleSide,
+      transparent: true,
+    });
+    const note = new THREE.Sprite(noteMaterial);
+    note.scale.setScalar(3);
+    transform.add(note);
+    this.runner = new CoroutineRunner();
+    const direction = new THREE.Vector3(rand(-0.2, 0.2), 1, rand(-0.2, 0.2));
+
+    function* moveAndRemove() {
+      for (let i = 0; i < 60; ++i) {
+        transform.translateOnAxis(direction, globals.deltaTime * 10);
+        noteMaterial.opacity = 1 - (i / 60);
+        yield;
+      }
+      transform.parent.remove(transform);
+      globals.gameObjectManager.removeGameObject(gameObject);
+    }
+
+    this.runner.add(moveAndRemove());
+  }
+
+  update() {
+    this.runner.update();
   }
 }

@@ -5,7 +5,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 // import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 import globals from './globals';
-import { GameObjectManager, InputManager, CameraInfo } from './utils';
+import {
+  GameObjectManager, InputManager, CameraInfo, rand,
+} from './utils';
 import { Player } from './game-object';
 import { Animal } from './components';
 
@@ -27,6 +29,7 @@ function main() {
   controls.update();
 
   const scene = new THREE.Scene();
+  globals.scene = scene;
   scene.background = new THREE.Color('white');
 
   function addLight(...pos) {
@@ -50,6 +53,7 @@ function main() {
   };
 
   const gameObjectManager = new GameObjectManager();
+  globals.gameObjectManager = gameObjectManager;
   const inputManager = new InputManager();
 
   {
@@ -110,11 +114,28 @@ function main() {
       'zebra',
       'horse',
     ];
-    animalModelNames.forEach((name, ndx) => {
+
+    const base = new THREE.Object3D();
+    const offset = new THREE.Object3D();
+    base.add(offset);
+
+    // position animals in a spiral.
+    const numAnimals = 28;
+    const arc = 10;
+    const b = 10 / (2 * Math.PI);
+    let r = 10;
+    let phi = r / b;
+    for (let i = 0; i < numAnimals; ++i) {
+      const name = animalModelNames[rand(animalModelNames.length) | 0];
       const gameObject = gameObjectManager.createGameObject(scene, name);
       gameObject.addComponent(Animal, models[name]);
-      gameObject.transform.position.x = (ndx + 1) * 5;
-    });
+      base.rotation.y = phi;
+      offset.position.x = r;
+      offset.updateWorldMatrix(true, false);
+      offset.getWorldPosition(gameObject.transform.position);
+      phi += arc / r;
+      r = b * phi;
+    }
   }
 
   function resizeRendererToDisplaySize(renderer) {

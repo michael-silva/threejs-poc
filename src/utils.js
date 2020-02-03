@@ -288,3 +288,93 @@ export class FiniteStateMachine {
     }
   }
 }
+
+
+export function* waitSeconds(duration) {
+  while (duration > 0) {
+    // eslint-disable-next-line no-param-reassign
+    duration -= globals.deltaTime;
+    yield;
+  }
+}
+
+export class CoroutineRunner {
+  constructor() {
+    this.generatorStacks = [];
+    this.addQueue = [];
+    this.removeQueue = new Set();
+  }
+
+  isBusy() {
+    return this.addQueue.length + this.generatorStacks.length > 0;
+  }
+
+  add(generator, delay = 0) {
+    const genStack = [generator];
+    if (delay) {
+      genStack.push(waitSeconds(delay));
+    }
+    this.addQueue.push(genStack);
+  }
+
+  remove(generator) {
+    this.removeQueue.add(generator);
+  }
+
+  update() {
+    this._addQueued();
+    this._removeQueued();
+    // eslint-disable-next-line no-restricted-syntax
+    for (const genStack of this.generatorStacks) {
+      const main = genStack[0];
+      // Handle if one coroutine removes another
+      if (this.removeQueue.has(main)) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+      while (genStack.length) {
+        const topGen = genStack[genStack.length - 1];
+        const { value, done } = topGen.next();
+        if (done) {
+          if (genStack.length === 1) {
+            this.removeQueue.add(topGen);
+            break;
+          }
+          genStack.pop();
+        }
+        else if (value) {
+          genStack.push(value);
+        }
+        else {
+          break;
+        }
+      }
+    }
+    this._removeQueued();
+  }
+
+  _addQueued() {
+    if (this.addQueue.length) {
+      this.generatorStacks.splice(this.generatorStacks.length, 0, ...this.addQueue);
+      this.addQueue = [];
+    }
+  }
+
+  _removeQueued() {
+    if (this.removeQueue.size) {
+      this.generatorStacks = this.generatorStacks
+        .filter((genStack) => !this.removeQueue.has(genStack[0]));
+      this.removeQueue.clear();
+    }
+  }
+}
+
+export function rand(min, max) {
+  if (max === undefined) {
+    // eslint-disable-next-line no-param-reassign
+    max = min;
+    // eslint-disable-next-line no-param-reassign
+    min = 0;
+  }
+  return Math.random() * (max - min) + min;
+}

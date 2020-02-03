@@ -1,6 +1,8 @@
-import { SkinInstance } from './components';
+import { SkinInstance, Note } from './components';
 import globals from './globals';
-import { Component } from './utils';
+import {
+  Component, CoroutineRunner, rand, waitSeconds,
+} from './utils';
 
 export class Player extends Component {
   constructor(gameObject) {
@@ -13,9 +15,25 @@ export class Player extends Component {
     this.offscreenTimer = 0;
     this.maxTimeOffScreen = 3;
     globals.playerRadius = model.size / 2;
+
+    // coroutine
+    this.runner = new CoroutineRunner();
+
+    function* emitNotes() {
+      for (;;) {
+        yield waitSeconds(rand(0.5, 1));
+        const noteGO = globals.gameObjectManager.createGameObject(globals.scene, 'note');
+        noteGO.transform.position.copy(gameObject.transform.position);
+        noteGO.transform.position.y += 5;
+        noteGO.addComponent(Note);
+      }
+    }
+
+    this.runner.add(emitNotes());
   }
 
   update(inputManager) {
+    this.runner.update();
     const { deltaTime, moveSpeed, cameraInfo } = globals;
     const { transform } = this.gameObject;
     const delta = (inputManager.keys.left.down ? 1 : 0)
