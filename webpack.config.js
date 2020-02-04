@@ -10,10 +10,13 @@ module.exports = {
     port: 3000,
     contentBase: path.join(__dirname, 'src'),
   },
-  entry: './src/index.js',
+  entry: {
+    example1: './src/example1/index.js',
+    example2: './src/example2/index.js',
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'index.js',
+    filename: '[name].js',
   },
   module: {
     rules: [

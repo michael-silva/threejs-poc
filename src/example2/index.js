@@ -18,10 +18,11 @@ const clock = new THREE.Clock(); // Used for anims, which run to a clock instead
 // Used to check whether characters neck is being used in another anim
 let currentlyAnimating = false;
 const raycaster = new THREE.Raycaster(); // Used to detect the click on our character
+const FLOOR_YPOS = -11;
 const loaderAnim = document.getElementById('js-loader');
 
 
-function init() {
+function loading() {
   const MODEL_PATH = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
   const stacyTex = new THREE.TextureLoader().load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
 
@@ -41,8 +42,11 @@ function init() {
       const fileAnimations = gltf.animations;
       // Set the models initial scale
       model.scale.set(7, 7, 7);
-      model.position.y = -11;
+      model.position.y = FLOOR_YPOS;
       model.traverse((o) => {
+        if (o.isBone) {
+          console.log(o.name);
+        }
         if (o.isMesh) {
           o.castShadow = true;
           o.receiveShadow = true;
@@ -62,18 +66,18 @@ function init() {
       loaderAnim.remove();
 
       mixer = new THREE.AnimationMixer(model);
+      const searchRegex = /^mixamorig(Spine|Neck)\.[a-z]*/i;
       const clips = fileAnimations.filter((val) => val.name !== 'idle');
       possibleAnims = clips.map((val) => {
         let clip = THREE.AnimationClip.findByName(clips, val.name);
-        clip.tracks.splice(3, 3);
-        clip.tracks.splice(9, 3);
+        // filter by the tracks that don't use neck or spine bones
+        clip.tracks = clip.tracks.filter((track) => !searchRegex.test(track.name));
         clip = mixer.clipAction(clip);
         return clip;
       });
       const idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
-      // Add these:
-      idleAnim.tracks.splice(3, 3);
-      idleAnim.tracks.splice(9, 3);
+      // filter by the tracks that don't use neck or spine bones
+      idleAnim.tracks = idleAnim.tracks.filter((track) => !searchRegex.test(track.name));
 
       idle = mixer.clipAction(idleAnim);
       idle.play();
@@ -83,7 +87,11 @@ function init() {
       console.error(error);
     },
   );
+}
 
+loading();
+
+function init() {
   const canvas = document.querySelector('#canvas');
   const backgroundColor = 0xf1f1f1;
 
@@ -96,7 +104,6 @@ function init() {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.shadowMap.enabled = true;
   renderer.setPixelRatio(window.devicePixelRatio);
-  document.body.appendChild(renderer.domElement);
 
   // Add a camera
   camera = new THREE.PerspectiveCamera(
@@ -139,20 +146,21 @@ function init() {
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.rotation.x = -0.5 * Math.PI; // This is 90 degrees by the way
   floor.receiveShadow = true;
-  floor.position.y = -11;
+  floor.position.y = FLOOR_YPOS;
   scene.add(floor);
+
+
+  // just add a circle to background
+  const geometry = new THREE.SphereGeometry(8, 32, 32);
+  const material = new THREE.MeshBasicMaterial({ color: 0x9bffaf }); // 0xf2ce2e
+  const sphere = new THREE.Mesh(geometry, material);
+  sphere.position.z = -15;
+  sphere.position.y = -2.5;
+  sphere.position.x = -0.25;
+  scene.add(sphere);
 }
 
 init();
-
-// just add a circle to background
-const geometry = new THREE.SphereGeometry(8, 32, 32);
-const material = new THREE.MeshBasicMaterial({ color: 0x9bffaf }); // 0xf2ce2e
-const sphere = new THREE.Mesh(geometry, material);
-sphere.position.z = -15;
-sphere.position.y = -2.5;
-sphere.position.x = -0.25;
-scene.add(sphere);
 
 
 // eslint-disable-next-line no-shadow
@@ -184,6 +192,7 @@ function update() {
   renderer.render(scene, camera);
   requestAnimationFrame(update);
 }
+
 update();
 
 function getMouseDegrees(x, y, degreeLimit) {
