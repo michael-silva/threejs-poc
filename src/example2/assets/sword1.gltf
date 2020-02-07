@@ -1,0 +1,191 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v1.0.5",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                3
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "name" : "bone2",
+            "rotation" : [
+                -0.0012493230169638991,
+                0.70709228515625,
+                0.0012492756359279156,
+                0.7071191668510437
+            ],
+            "scale" : [
+                0.9999999403953552,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "translation" : [
+                0,
+                1.9913243055343628,
+                0
+            ]
+        },
+        {
+            "children" : [
+                0
+            ],
+            "name" : "base"
+        },
+        {
+            "mesh" : 0,
+            "name" : "Plane",
+            "skin" : 0
+        },
+        {
+            "children" : [
+                2,
+                1
+            ],
+            "name" : "Armature",
+            "translation" : [
+                0.012399911880493164,
+                0.020639896392822266,
+                -0.005203157663345337
+            ]
+        }
+    ],
+    "materials" : [
+        {
+            "doubleSided" : true,
+            "name" : "Material",
+            "pbrMetallicRoughness" : {}
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "Plane",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "NORMAL" : 1,
+                        "TEXCOORD_0" : 2,
+                        "JOINTS_0" : 3,
+                        "WEIGHTS_0" : 4
+                    },
+                    "indices" : 5,
+                    "material" : 0
+                }
+            ]
+        }
+    ],
+    "skins" : [
+        {
+            "inverseBindMatrices" : 6,
+            "joints" : [
+                1,
+                0
+            ],
+            "name" : "Armature"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 2815,
+            "max" : [
+                0.7965884208679199,
+                7.869259834289551,
+                0.1653737872838974
+            ],
+            "min" : [
+                -0.7706267833709717,
+                -0.26613685488700867,
+                -0.15364037454128265
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 2815,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 2815,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 2815,
+            "type" : "VEC4"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 2815,
+            "type" : "VEC4"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5123,
+            "count" : 4179,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 2,
+            "type" : "MAT4"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 33780,
+            "byteOffset" : 0
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 33780,
+            "byteOffset" : 33780
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 22520,
+            "byteOffset" : 67560
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 22520,
+            "byteOffset" : 90080
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 45040,
+            "byteOffset" : 112600
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 8358,
+            "byteOffset" : 157640
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 128,
+            "byteOffset" : 166000
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 166128,
+            "uri" : "sword1.bin"
+        }
+    ]
+}

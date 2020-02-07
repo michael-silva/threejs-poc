@@ -2,13 +2,14 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-// import { TextureLoader } from 'three/examples/jsm/loaders/BasisTextureLoader';
+import { TextureLoader } from 'three/examples/jsm/loaders/BasisTextureLoader';
 
 // Set our main variables
 let scene;
 let renderer;
 let camera;
 let model; // Our character
+let sword; // Our sword
 let neck; // Reference to the neck bone in the skeleton
 let waist; // Reference to the waist bone in the skeleton
 let possibleAnims; // Animations found in our file
@@ -20,10 +21,11 @@ let currentlyAnimating = false;
 const raycaster = new THREE.Raycaster(); // Used to detect the click on our character
 const FLOOR_YPOS = -11;
 const loaderAnim = document.getElementById('js-loader');
-
+const MODEL_NAME = 'bot'; // 'stacy'
+let base;
 
 function loading() {
-  const MODEL_PATH = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
+  const MODEL_PATH = './example2/assets/boy.glb'; // 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
   const stacyTex = new THREE.TextureLoader().load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
 
   stacyTex.flipY = false; // we flip the texture so that its the right way up
@@ -89,7 +91,86 @@ function loading() {
   );
 }
 
-loading();
+// add noop update function to Object3D prototype
+// so any Object3D may be a child of a Bone
+THREE.Object3D.prototype.update = function () {};
+
+function loading2() {
+  const MODEL_PATH = './assets/character.gltf';
+  const loader = new GLTFLoader();
+
+  loader.load(
+    MODEL_PATH,
+    (gltf) => {
+      model = gltf.scene;
+      const fileAnimations = gltf.animations;
+      // Set the models initial scale
+      model.scale.set(7, 7, 7);
+      model.position.y = FLOOR_YPOS;
+      model.traverse((o) => {
+        if (o.isBone) {
+          // console.log(o.name);
+        }
+        if (o.isMesh) {
+          o.castShadow = true;
+          o.receiveShadow = true;
+        }
+      });
+
+      const hand = model.getObjectByName('mixamorigRightHand');
+      base = sword.getObjectByName('base');
+      hand.add(base);
+      base.scale.set(12, 12, 12);
+      base.rotation.x = 1.4;
+      base.position.x = hand.position.x + 16;
+      base.position.y = hand.position.y - 4;
+      base.position.z = hand.position.z - 7;
+
+      model.add(sword);
+      scene.add(model);
+      const skeleton = new THREE.SkeletonHelper(model);
+      skeleton.visible = true;
+      scene.add(skeleton);
+
+
+      loaderAnim.remove();
+
+      mixer = new THREE.AnimationMixer(model);
+      const clips = fileAnimations.filter((val) => val.name !== 'idle');
+      possibleAnims = clips.map((val) => {
+        let clip = THREE.AnimationClip.findByName(clips, val.name);
+        clip = mixer.clipAction(clip);
+        return clip;
+      });
+      const idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
+      idle = mixer.clipAction(idleAnim);
+      idle.play();
+    },
+    undefined, // We don't need this function
+    (error) => {
+      console.error(error);
+    },
+  );
+}
+
+function loading3() {
+  const MODEL_PATH = './assets/sword1.gltf';
+  const loader = new GLTFLoader();
+
+  loader.load(
+    MODEL_PATH,
+    (gltf) => {
+      sword = gltf.scene;
+      loading2();
+    },
+    undefined, // We don't need this function
+    (error) => {
+      console.error(error);
+    },
+  );
+}
+
+loading3();
 
 function init() {
   const canvas = document.querySelector('#canvas');
@@ -144,7 +225,7 @@ function init() {
   });
 
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  floor.rotation.x = -0.5 * Math.PI; // This is 90 degrees by the way
+  floor.quaternion.x = -0.5 * Math.PI; // This is 90 degrees by the way
   floor.receiveShadow = true;
   floor.position.y = FLOOR_YPOS;
   scene.add(floor);
@@ -186,6 +267,7 @@ function update() {
   }
 
   if (mixer) {
+    // console.log(sword.getWorldPosition());
     mixer.update(clock.getDelta());
   }
 
@@ -245,8 +327,8 @@ function getMousePos(e) {
 
 function moveJoint(mouse, joint, degreeLimit) {
   const degrees = getMouseDegrees(mouse.x, mouse.y, degreeLimit);
-  joint.rotation.y = THREE.Math.degToRad(degrees.x);
-  joint.rotation.x = THREE.Math.degToRad(degrees.y);
+  joint.quaternion.y = THREE.Math.degToRad(degrees.x);
+  joint.quaternion.x = THREE.Math.degToRad(degrees.y);
 }
 
 function playModifierAnimation(from, fSpeed, to, tSpeed) {
@@ -286,13 +368,14 @@ function raycast(e, touch = false) {
 
   if (intersects[0]) {
     const { object } = intersects[0];
+    console.log(object, 'name');
 
-    if (object.name === 'stacy') {
-      if (!currentlyAnimating) {
-        currentlyAnimating = true;
-        playOnClick();
-      }
+    // if (object.name === MODEL_NAME) {
+    if (!currentlyAnimating) {
+      currentlyAnimating = true;
+      playOnClick();
     }
+    // }
   }
 }
 
