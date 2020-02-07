@@ -1,8 +1,12 @@
 /* eslint-disable no-param-reassign */
 
+/**
+ * Three.js example based on tutorial
+ * https://tympanus.net/codrops/2019/10/14/how-to-create-an-interactive-3d-character-with-three-js/
+ */
+
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { TextureLoader } from 'three/examples/jsm/loaders/BasisTextureLoader';
 
 // Set our main variables
 let scene;
@@ -21,11 +25,12 @@ let currentlyAnimating = false;
 const raycaster = new THREE.Raycaster(); // Used to detect the click on our character
 const FLOOR_YPOS = -11;
 const loaderAnim = document.getElementById('js-loader');
-const MODEL_NAME = 'bot'; // 'stacy'
+// const MODEL_NAME = 'bot'; // 'stacy'
 let base;
 
+// eslint-disable-next-line no-unused-vars
 function loading() {
-  const MODEL_PATH = './example2/assets/boy.glb'; // 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
+  const MODEL_PATH = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
   const stacyTex = new THREE.TextureLoader().load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
 
   stacyTex.flipY = false; // we flip the texture so that its the right way up
@@ -91,11 +96,7 @@ function loading() {
   );
 }
 
-// add noop update function to Object3D prototype
-// so any Object3D may be a child of a Bone
-THREE.Object3D.prototype.update = function () {};
-
-function loading2() {
+function loadingBot() {
   const MODEL_PATH = './assets/character.gltf';
   const loader = new GLTFLoader();
 
@@ -153,7 +154,7 @@ function loading2() {
   );
 }
 
-function loading3() {
+function loadingSword() {
   const MODEL_PATH = './assets/sword1.gltf';
   const loader = new GLTFLoader();
 
@@ -161,7 +162,7 @@ function loading3() {
     MODEL_PATH,
     (gltf) => {
       sword = gltf.scene;
-      loading2();
+      loadingBot();
     },
     undefined, // We don't need this function
     (error) => {
@@ -170,7 +171,8 @@ function loading3() {
   );
 }
 
-loading3();
+// loading();
+loadingSword();
 
 function init() {
   const canvas = document.querySelector('#canvas');
@@ -225,7 +227,7 @@ function init() {
   });
 
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  floor.quaternion.x = -0.5 * Math.PI; // This is 90 degrees by the way
+  floor.rotation.x = -0.5 * Math.PI; // This is 90 degrees by the way
   floor.receiveShadow = true;
   floor.position.y = FLOOR_YPOS;
   scene.add(floor);
@@ -327,8 +329,8 @@ function getMousePos(e) {
 
 function moveJoint(mouse, joint, degreeLimit) {
   const degrees = getMouseDegrees(mouse.x, mouse.y, degreeLimit);
-  joint.quaternion.y = THREE.Math.degToRad(degrees.x);
-  joint.quaternion.x = THREE.Math.degToRad(degrees.y);
+  joint.rotation.y = THREE.Math.degToRad(degrees.x);
+  joint.rotation.x = THREE.Math.degToRad(degrees.y);
 }
 
 function playModifierAnimation(from, fSpeed, to, tSpeed) {
@@ -366,10 +368,8 @@ function raycast(e, touch = false) {
   // calculate objects intersecting the picking ray
   const intersects = raycaster.intersectObjects(scene.children, true);
 
-  if (intersects[0]) {
-    const { object } = intersects[0];
-    console.log(object, 'name');
-
+  if (intersects.length) {
+    // const { object } = intersects[0];
     // if (object.name === MODEL_NAME) {
     if (!currentlyAnimating) {
       currentlyAnimating = true;

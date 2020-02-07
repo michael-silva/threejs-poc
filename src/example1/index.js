@@ -1,5 +1,10 @@
 /* eslint-disable no-use-before-define,no-bitwise,no-mixed-operators,no-param-reassign,no-shadow */
 
+/**
+ * Three.js example based on tutorial
+ * https://threejsfundamentals.org/threejs/lessons/threejs-game.html
+ */
+
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
