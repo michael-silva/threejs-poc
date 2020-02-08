@@ -3,6 +3,7 @@
 /**
  * Three.js example based on tutorial
  * https://tympanus.net/codrops/2019/10/14/how-to-create-an-interactive-3d-character-with-three-js/
+ * Extra reference: https://github.com/shrekshao/gltf-avatar-threejs
  */
 
 import * as THREE from 'three';

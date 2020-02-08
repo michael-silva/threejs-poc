@@ -13,6 +13,7 @@ module.exports = {
   entry: {
     example1: './src/example1/index.js',
     example2: './src/example2/index.js',
+    example3: './src/example3/index.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -22,7 +23,7 @@ module.exports = {
     rules: [
       {
         test: /\.m?js$/,
-        exclude: /(node_modules|bower_components)/,
+        exclude: /(node_modules|bower_components|vendor)/,
         use: {
           loader: 'babel-loader',
           options: babelConfig,
