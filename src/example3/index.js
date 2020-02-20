@@ -54,7 +54,7 @@ window.Ammo().then((Ammo) => {
   }
 
   function initGraphics() {
-    const canvas = document.querySelector('#canvas')
+    const canvas = document.querySelector('#canvas');
     container = document.getElementById('container');
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.2, 2000);
