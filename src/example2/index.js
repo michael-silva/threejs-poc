@@ -134,7 +134,6 @@ function loadingBot() {
       skeleton.visible = true;
       scene.add(skeleton);
 
-
       loaderAnim.remove();
 
       mixer = new THREE.AnimationMixer(model);
@@ -233,7 +232,6 @@ function init() {
   floor.position.y = FLOOR_YPOS;
   scene.add(floor);
 
-
   // just add a circle to background
   const geometry = new THREE.SphereGeometry(8, 32, 32);
   const material = new THREE.MeshBasicMaterial({ color: 0x9bffaf }); // 0xf2ce2e
@@ -245,7 +243,6 @@ function init() {
 }
 
 init();
-
 
 // eslint-disable-next-line no-shadow
 function resizeRendererToDisplaySize(renderer) {

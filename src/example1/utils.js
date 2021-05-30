@@ -241,7 +241,6 @@ export class InputManager {
   }
 }
 
-
 export class CameraInfo extends Component {
   constructor(gameObject) {
     super(gameObject);
@@ -288,7 +287,6 @@ export class FiniteStateMachine {
     }
   }
 }
-
 
 export function* waitSeconds(duration) {
   while (duration > 0) {

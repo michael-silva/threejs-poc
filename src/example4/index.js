@@ -128,7 +128,6 @@ function main() {
   const manager = new THREE.LoadingManager();
   manager.onLoad = init;
 
-
   const progressbarElem = document.querySelector('#progressbar');
   manager.onProgress = (url, itemsLoaded, itemsTotal) => {
     progressbarElem.style.width = `${itemsLoaded / itemsTotal * 100 | 0}%`;
@@ -195,7 +194,6 @@ function main() {
       const gameObject = gameObjectManager.createGameObject(camera, 'camera');
       globals.cameraInfo = gameObject.addComponent(CameraInfo);
     }
-
 
     camera.lookAt(globals.playerObject.transform.position);
 
