@@ -12,10 +12,11 @@ import { GUI } from 'dat.gui';
 // import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 import globals from '../game-engine/globals';
 import {
-  GameObjectManager, InputManager, CameraInfo1, rand,
+  GameObjectManager, InputManager, rand,
 } from '../game-engine/utils';
 import { Player } from './game-object';
 import { Animal } from '../game-engine/components';
+import { CameraInfo } from './components';
 
 globals.setInitial({
   debug: true,
@@ -128,7 +129,7 @@ function main() {
 
     {
       const gameObject = gameObjectManager.createGameObject(camera, 'camera');
-      globals.cameraInfo = gameObject.addComponent(CameraInfo1);
+      globals.cameraInfo = gameObject.addComponent(CameraInfo);
     }
 
     const animalModelNames = [
