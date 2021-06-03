@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import globals from './globals';
 
 function removeArrayElement(array, element) {
@@ -112,6 +113,207 @@ export class GameObjectManager {
 
   update(...args) {
     this.gameObjects.forEach((gameObject) => gameObject.update(...args));
+  }
+}
+
+export class ModelLoaderManager {
+  constructor() {
+    this.loadingManager = new THREE.LoadingManager();
+    this.modelsIndex = {};
+    this.loaders = {};
+  }
+
+  _eachLoader(callback) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const loader of Object.values(this.loaders)) callback(loader);
+  }
+
+  _prepareModels() {
+    const box = new THREE.Box3();
+    const size = new THREE.Vector3();
+    this._eachLoader(({ models }) => {
+      models.forEach(([, model]) => {
+        box.setFromObject(model.gltf.scene);
+        box.getSize(size);
+        // eslint-disable-next-line no-param-reassign
+        model.size = size.length();
+        const animsByName = {};
+        console.log('------->:', model.url);
+        model.gltf.animations.forEach((clip) => {
+          animsByName[clip.name] = clip;
+          console.log('  ', clip.name);
+        });
+        // eslint-disable-next-line no-param-reassign
+        model.animations = animsByName;
+      });
+    });
+    if (this._onAllLoad) { this._onAllLoad(); }
+  }
+
+  eachModel(callback) {
+    this._eachLoader(({ models }) => {
+      models.forEach(callback);
+    });
+  }
+
+  getModel(name) {
+    return this.modelsIndex[name];
+  }
+
+  addModelGLTF(model, name) {
+    if (!this.loaders.gltf) {
+      this.loaders.gltf = { loader: new GLTFLoader(this.loadingManager), models: [] };
+    }
+    this.loaders.gltf.models.push([name, model]);
+    if (this.modelsIndex[name]) throw new Error(`Already has an model with name [${name}] in index`);
+    this.modelsIndex[name] = model;
+    // console.log(name);
+  }
+
+  loadAll() {
+    this.loadingManager.onLoad = this._prepareModels.bind(this);
+    this._eachLoader(({ loader, models }) => {
+      console.log(models);
+      models.forEach(([name, model]) => {
+        console.log(name);
+        loader.load(model.url, (gltf) => {
+          // eslint-disable-next-line no-param-reassign
+          model.gltf = gltf;
+          if (model.onLoad) { model.onLoad(); }
+        });
+      });
+    });
+  }
+
+  onProgress(callback) {
+    this.loadingManager.onProgress = callback;
+  }
+
+  onLoad(callback) {
+    this._onAllLoad = callback;
+  }
+}
+
+export class MouseMovement {
+  constructor() {
+    this.keys = {};
+    const keyMap = new Map();
+
+    const setKey = (keyName, pressed) => {
+      const keyState = this.keys[keyName];
+      keyState.justPressed = pressed && !keyState.down;
+      keyState.justReleased = !pressed && keyState.down;
+      keyState.down = pressed;
+    };
+
+    const addKey = (keyCode, name) => {
+      this.keys[name] = { down: false, justPressed: false };
+      keyMap.set(keyCode, name);
+    };
+
+    const setKeyFromKeyCode = (keyCode, pressed) => {
+      const keyName = keyMap.get(keyCode);
+      if (!keyName) {
+        return;
+      }
+      setKey(keyName, pressed);
+    };
+
+    addKey(37, 'left');
+    addKey(39, 'right');
+    addKey(38, 'up');
+    addKey(40, 'down');
+    addKey(32, 'space');
+    addKey(90, 'a');
+    addKey(83, 's');
+    addKey(68, 'd');
+    addKey(87, 'w');
+    addKey(88, 'b');
+    addKey(49, 'one');
+    addKey(50, 'two');
+
+    window.addEventListener('keydown', (e) => {
+      setKeyFromKeyCode(e.keyCode, true);
+    });
+    window.addEventListener('keyup', (e) => {
+      setKeyFromKeyCode(e.keyCode, false);
+    });
+
+    /** required just to sample 1 */
+    const sides = [
+      { elem: document.querySelector('#left'), key: 'left' },
+      { elem: document.querySelector('#right'), key: 'right' },
+    ];
+
+    const clearKeys = () => {
+      // eslint-disable-next-line no-restricted-syntax
+      for (const { key } of sides) {
+        setKey(key, false);
+      }
+    };
+
+    const checkSides = (e) => {
+      // eslint-disable-next-line no-restricted-syntax
+      for (const { elem, key } of sides) {
+        let pressed = false;
+        const rect = elem.getBoundingClientRect();
+        // eslint-disable-next-line no-restricted-syntax
+        for (const touch of e.touches) {
+          const x = touch.clientX;
+          const y = touch.clientY;
+          const inRect = x >= rect.left && x < rect.right
+                         && y >= rect.top && y < rect.bottom;
+          if (inRect) {
+            pressed = true;
+          }
+        }
+        setKey(key, pressed);
+      }
+    };
+
+    const uiElem = document.querySelector('#ui');
+    if (uiElem) {
+      uiElem.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        checkSides(e);
+      }, { passive: false });
+      uiElem.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // prevent scroll
+        checkSides(e);
+      }, { passive: false });
+      uiElem.addEventListener('touchend', () => {
+        clearKeys();
+      });
+
+      const handleMouseMove = (e) => {
+        e.preventDefault();
+        checkSides({
+          touches: [e],
+        });
+      };
+
+      const handleMouseUp = () => {
+        clearKeys();
+        window.removeEventListener('mousemove', handleMouseMove, { passive: false });
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      uiElem.addEventListener('mousedown', (e) => {
+        handleMouseMove(e);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+      }, { passive: false });
+    }
+    /** ======================================= */
+  }
+
+  update() {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const keyState of Object.values(this.keys)) {
+      if (keyState.justPressed) {
+        keyState.justPressed = false;
+      }
+    }
   }
 }
 

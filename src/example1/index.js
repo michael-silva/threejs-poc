@@ -7,12 +7,11 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { GUI } from 'dat.gui';
 // import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 import globals from '../game-engine/globals';
 import {
-  GameObjectManager, InputManager, rand,
+  ModelLoaderManager, GameObjectManager, InputManager, rand,
 } from '../game-engine/utils';
 import { Player } from './game-object';
 import { Animal } from '../game-engine/components';
@@ -70,55 +69,34 @@ function main() {
   addLight(-5, 5, 5);
 
   const { models } = globals;
-  const manager = new THREE.LoadingManager();
-  manager.onLoad = init;
 
   const progressbarElem = document.querySelector('#progressbar');
-  manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+  function progressHandler(url, itemsLoaded, itemsTotal) {
     progressbarElem.style.width = `${itemsLoaded / itemsTotal * 100 | 0}%`;
-  };
+  }
 
   const gameObjectManager = new GameObjectManager();
   globals.gameObjectManager = gameObjectManager;
   const inputManager = new InputManager();
-
-  {
-    const gltfLoader = new GLTFLoader(manager);
-    // eslint-disable-next-line no-restricted-syntax
-    for (const model of Object.values(models)) {
-      gltfLoader.load(model.url, (gltf) => {
-        model.gltf = gltf;
-      });
-    }
+  const modelManager = new ModelLoaderManager();
+  // eslint-disable-next-line no-restricted-syntax
+  for (const [name, model] of Object.entries(models)) {
+    modelManager.addModelGLTF(model, name);
   }
-
-  function prepModelsAndAnimations() {
-    const box = new THREE.Box3();
-    const size = new THREE.Vector3();
-    Object.values(models).forEach((model) => {
-      box.setFromObject(model.gltf.scene);
-      box.getSize(size);
-      model.size = size.length();
-      const animsByName = {};
-      console.log('------->:', model.url);
-      model.gltf.animations.forEach((clip) => {
-        animsByName[clip.name] = clip;
-        console.log('  ', clip.name);
-        // Should really fix this in .blend file
-        if (clip.name === 'Walk') {
-          clip.duration /= 2;
-        }
-      });
-      model.animations = animsByName;
-    });
-  }
+  modelManager.onProgress(progressHandler);
+  modelManager.onLoad(init);
+  modelManager.loadAll();
 
   function init() {
     // hide the loading bar
     const loadingElem = document.querySelector('#loading');
     loadingElem.style.display = 'none';
 
-    prepModelsAndAnimations();
+    modelManager.eachModel(([, model]) => {
+      if (model.animations.Walk) {
+        model.animations.Walk.duration /= 2;
+      }
+    });
 
     {
       const gameObject = gameObjectManager.createGameObject(scene, 'player');
@@ -155,7 +133,7 @@ function main() {
     for (let i = 0; i < numAnimals; ++i) {
       const name = animalModelNames[rand(animalModelNames.length) | 0];
       const gameObject = gameObjectManager.createGameObject(scene, name);
-      gameObject.addComponent(Animal, models[name]);
+      gameObject.addComponent(Animal, modelManager.getModel(name));
       base.rotation.y = phi;
       offset.position.x = r;
       offset.updateWorldMatrix(true, false);

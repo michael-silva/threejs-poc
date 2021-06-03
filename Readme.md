@@ -12,7 +12,8 @@ This project is a collection of samples experimenting some aspects of game devel
 
 ## Next steps
 
-- Move the reusable code in and engine directory
+- Adjust the examples to use the game engine
+- Create and scafolding sample
 - Create a sample specific to prove the input system features
 - Improve the input system and create a debug mode of it
 - Create a sample specific to prove the model loader system features

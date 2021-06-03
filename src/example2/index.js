@@ -111,12 +111,20 @@ function loadingBot() {
       model.position.y = FLOOR_YPOS;
       model.traverse((o) => {
         if (o.isBone) {
-          // console.log(o.name);
+          console.log(o.name);
         }
         if (o.isMesh) {
           o.castShadow = true;
           o.receiveShadow = true;
         }
+
+        // Reference the neck and waist bones
+        // if (o.isBone && o.name === 'mixamorigNeck') {
+        //   neck = o;
+        // }
+        // if (o.isBone && o.name === 'mixamorigSpine') {
+        //   waist = o;
+        // }
       });
 
       const hand = model.getObjectByName('mixamorigRightHand');
@@ -137,13 +145,21 @@ function loadingBot() {
       loaderAnim.remove();
 
       mixer = new THREE.AnimationMixer(model);
+      // const searchRegex = /^mixamorig(Spine|Neck)\.[a-z]*/i;
       const clips = fileAnimations.filter((val) => val.name !== 'idle');
+
       possibleAnims = clips.map((val) => {
         let clip = THREE.AnimationClip.findByName(clips, val.name);
+        // filter by the tracks that don't use neck or spine bones
+        // clip.tracks = clip.tracks.filter((track) => !searchRegex.test(track.name));
         clip = mixer.clipAction(clip);
         return clip;
       });
+
       const idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
+      // filter by the tracks that don't use neck or spine bones
+      // idleAnim.tracks = idleAnim.tracks.filter((track) => !searchRegex.test(track.name));
+
       idle = mixer.clipAction(idleAnim);
       idle.play();
     },
