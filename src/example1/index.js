@@ -12,12 +12,11 @@ import { GUI } from 'dat.gui';
 // import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 import globals from '../game-engine/globals';
 import {
-  GameObjectManager, InputManager, CameraInfo, rand,
+  GameObjectManager, InputManager, CameraInfo1, rand,
 } from '../game-engine/utils';
 import { Player } from './game-object';
 import { Animal } from '../game-engine/components';
 
-console.log('before', globals);
 globals.setInitial({
   debug: true,
   time: 0,
@@ -36,7 +35,6 @@ globals.setInitial({
     knight: { url: './assets/knight/KnightCharacter.gltf' },
   },
 });
-console.log('after', globals);
 
 function main() {
   const canvas = document.querySelector('#canvas');
@@ -123,13 +121,14 @@ function main() {
 
     {
       const gameObject = gameObjectManager.createGameObject(scene, 'player');
-      globals.player = gameObject.addComponent(Player);
+      gameObject.addComponent(Player);
+      globals.playerObject = gameObject;
       globals.congaLine = [gameObject];
     }
 
     {
       const gameObject = gameObjectManager.createGameObject(camera, 'camera');
-      globals.cameraInfo = gameObject.addComponent(CameraInfo);
+      globals.cameraInfo = gameObject.addComponent(CameraInfo1);
     }
 
     const animalModelNames = [
@@ -205,7 +204,7 @@ const labelContainerElem = document.querySelector('#labels');
 function showHideDebugInfo() {
   labelContainerElem.style.display = globals.debug ? '' : 'none';
 }
-globals.labelContainerElem = document.querySelector('#labels');
+globals.labelContainerElem = labelContainerElem;
 
 const gui = new GUI();
 gui.add(globals, 'debug').onChange(showHideDebugInfo);

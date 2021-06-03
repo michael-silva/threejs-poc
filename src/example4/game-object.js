@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { SkinInstance } from './components';
-import globals from './globals';
-import { Component, FiniteStateMachine } from './utils';
+import { SkinInstance } from '../game-engine/components';
+import globals from '../game-engine/globals';
+import { Component, FiniteStateMachine } from '../game-engine/utils';
 
 export class Player extends Component {
   constructor(gameObject) {

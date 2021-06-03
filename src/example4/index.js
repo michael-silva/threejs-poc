@@ -9,12 +9,34 @@ import * as THREE from 'three';
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 // import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
-import globals from './globals';
+import { GUI } from 'dat.gui';
+import globals from '../game-engine/globals';
 import {
   GameObjectManager, InputManager, CameraInfo, rand,
-} from './utils';
+} from '../game-engine/utils';
 import { Player } from './game-object';
-import { Animal } from './components';
+import { Animal } from '../game-engine/components';
+
+globals.setInitial(
+  {
+    debug: true,
+    time: 0,
+    deltaTime: 0,
+    moveSpeed: 16,
+    kForward: new THREE.Vector3(0, 0, 1),
+    models: {
+      pig: { url: './assets/animals/Pig.gltf' },
+      cow: { url: './assets/animals/Cow.gltf' },
+      llama: { url: './assets/animals/Llama.gltf' },
+      pug: { url: './assets/animals/Pug.gltf' },
+      sheep: { url: './assets/animals/Sheep.gltf' },
+      sheep2: { url: 'https:/threejsfundamentals.org/threejs/resources/models/animals/Sheep.gltf' },
+      zebra: { url: './assets/animals/Zebra.gltf' },
+      horse: { url: './assets/animals/Horse.gltf' },
+      knight: { url: './assets/knight/KnightCharacter.gltf' },
+    },
+  },
+);
 
 /**
  * Create a happy little tree.
@@ -266,4 +288,13 @@ function main() {
   requestAnimationFrame(render);
 }
 
+const labelContainerElem = document.querySelector('#labels');
+function showHideDebugInfo() {
+  labelContainerElem.style.display = globals.debug ? '' : 'none';
+}
+globals.labelContainerElem = labelContainerElem;
+
+const gui = new GUI();
+gui.add(globals, 'debug').onChange(showHideDebugInfo);
+showHideDebugInfo();
 main();

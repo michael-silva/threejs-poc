@@ -137,6 +137,7 @@ export class InputManager {
     const setKey = (keyName, pressed) => {
       const keyState = this.keys[keyName];
       keyState.justPressed = pressed && !keyState.down;
+      keyState.justReleased = !pressed && keyState.down;
       keyState.down = pressed;
     };
 
@@ -157,8 +158,14 @@ export class InputManager {
     addKey(39, 'right');
     addKey(38, 'up');
     addKey(40, 'down');
+    addKey(32, 'space');
     addKey(90, 'a');
+    addKey(83, 's');
+    addKey(68, 'd');
+    addKey(87, 'w');
     addKey(88, 'b');
+    addKey(49, 'one');
+    addKey(50, 'two');
 
     window.addEventListener('keydown', (e) => {
       setKeyFromKeyCode(e.keyCode, true);
@@ -167,6 +174,7 @@ export class InputManager {
       setKeyFromKeyCode(e.keyCode, false);
     });
 
+    /** required just to sample 1 */
     const sides = [
       { elem: document.querySelector('#left'), key: 'left' },
       { elem: document.querySelector('#right'), key: 'right' },
@@ -199,36 +207,39 @@ export class InputManager {
     };
 
     const uiElem = document.querySelector('#ui');
-    uiElem.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      checkSides(e);
-    }, { passive: false });
-    uiElem.addEventListener('touchmove', (e) => {
-      e.preventDefault(); // prevent scroll
-      checkSides(e);
-    }, { passive: false });
-    uiElem.addEventListener('touchend', () => {
-      clearKeys();
-    });
-
-    function handleMouseMove(e) {
-      e.preventDefault();
-      checkSides({
-        touches: [e],
+    if (uiElem) {
+      uiElem.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        checkSides(e);
+      }, { passive: false });
+      uiElem.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // prevent scroll
+        checkSides(e);
+      }, { passive: false });
+      uiElem.addEventListener('touchend', () => {
+        clearKeys();
       });
-    }
 
-    function handleMouseUp() {
-      clearKeys();
-      window.removeEventListener('mousemove', handleMouseMove, { passive: false });
-      window.removeEventListener('mouseup', handleMouseUp);
-    }
+      const handleMouseMove = (e) => {
+        e.preventDefault();
+        checkSides({
+          touches: [e],
+        });
+      };
 
-    uiElem.addEventListener('mousedown', (e) => {
-      handleMouseMove(e);
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }, { passive: false });
+      const handleMouseUp = () => {
+        clearKeys();
+        window.removeEventListener('mousemove', handleMouseMove, { passive: false });
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      uiElem.addEventListener('mousedown', (e) => {
+        handleMouseMove(e);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+      }, { passive: false });
+    }
+    /** ======================================= */
   }
 
   update() {
@@ -241,7 +252,7 @@ export class InputManager {
   }
 }
 
-export class CameraInfo extends Component {
+export class CameraInfo1 extends Component {
   constructor(gameObject) {
     super(gameObject);
     this.projScreenMatrix = new THREE.Matrix4();
@@ -250,6 +261,44 @@ export class CameraInfo extends Component {
 
   update() {
     const { camera } = globals;
+    this.projScreenMatrix.multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse,
+    );
+    this.frustum.setFromProjectionMatrix(this.projScreenMatrix);
+  }
+}
+
+export class CameraInfo extends Component {
+  constructor(gameObject) {
+    super(gameObject);
+    this.projScreenMatrix = new THREE.Matrix4();
+    this.frustum = new THREE.Frustum();
+
+    const { playerObject } = globals;
+    this.goal = new THREE.Object3D();
+    playerObject.transform.add(this.goal);
+    this.goal.position.set(0, 5, -5);
+    const goalPos = this.goal.getWorldPosition();
+    this.cache = { x: goalPos.x, z: goalPos.z };
+  }
+
+  update() {
+    const { camera, playerObject } = globals;
+
+    const playerPos = playerObject.transform.position;
+
+    const goalPos = this.goal.getWorldPosition();
+    // if (this.cache.x !== goalPos.x || this.cache.z !== goalPos.z) {
+    this.cache = { x: goalPos.x, z: goalPos.z };
+    const temp = new THREE.Vector3();
+    temp.setFromMatrixPosition(this.goal.matrixWorld);
+    camera.position.lerp(temp, 0.02);
+    // }
+
+    // camera.lookAt(playerPos);
+    camera.lookAt(playerPos.x, playerPos.y + 5, playerPos.z);
+
     this.projScreenMatrix.multiplyMatrices(
       camera.projectionMatrix,
       camera.matrixWorldInverse,

@@ -125,7 +125,7 @@ export class Animal extends Component {
     const skinInstance = gameObject.addComponent(SkinInstance, model);
     skinInstance.mixer.timeScale = globals.moveSpeed / 4;
     const { transform } = gameObject;
-    const playerTransform = globals.player.gameObject.transform;
+    const playerTransform = globals.playerObject.transform;
     const maxTurnSpeed = Math.PI * (globals.moveSpeed / 4);
     const targetHistory = [];
     let targetNdx = 0;
