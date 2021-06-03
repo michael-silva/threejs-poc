@@ -195,7 +195,7 @@ export class InputManager {
 export class CameraInfo extends Component {
   constructor(gameObject) {
     super(gameObject);
-    const { camera, playerComponent } = globals;
+    const { camera, playerObject } = globals;
 
     this.temp = new THREE.Vector3();
     this.dir = new THREE.Vector3();
@@ -206,15 +206,15 @@ export class CameraInfo extends Component {
     this.coronaSafetyDistance = 0.3;
     this.follow = new THREE.Object3D();
     this.follow.position.z = -this.coronaSafetyDistance;
-    playerComponent.model.add(this.follow);
+    playerObject.transform.add(this.follow);
 
     this.goal.add(camera);
   }
 
   update() {
-    const { playerComponent, camera } = globals;
+    const { playerObject, camera } = globals;
 
-    this.a.lerp(playerComponent.model.position, 0.4);
+    this.a.lerp(playerObject.transform.position, 0.4);
     this.b.copy(this.goal.position);
 
     this.dir.copy(this.a).sub(this.b).normalize();
@@ -223,7 +223,7 @@ export class CameraInfo extends Component {
     this.goal.position.lerp(this.temp, 0.02);
     this.temp.setFromMatrixPosition(this.follow.matrixWorld);
 
-    camera.lookAt(playerComponent.model.position);
+    camera.lookAt(playerObject.transform.position);
   }
 }
 
@@ -233,10 +233,9 @@ export class Player extends Component {
     const geometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
     const material = new THREE.MeshNormalMaterial();
     const mesh = new THREE.Mesh(geometry, material);
-    this.model = mesh;
+    gameObject.transform.add(mesh);
     this.speed = 0.0;
     this.velocity = 0.0;
-    globals.scene.add(this.model);
   }
 
   update() {
@@ -246,17 +245,17 @@ export class Player extends Component {
       this.speed = 0.01;
     }
     else if (inputManager.keys.down.down) {
-      this.model.rotateY(0.5);
+      this.gameObject.transform.rotateY(0.5);
     }
     if (inputManager.keys.right.down) {
-      this.model.rotateY(0.05);
+      this.gameObject.transform.rotateY(0.05);
     }
     else if (inputManager.keys.left.down) {
-      this.model.rotateY(-0.05);
+      this.gameObject.transform.rotateY(-0.05);
     }
 
     this.velocity += (this.speed - this.velocity) * 0.3;
-    this.model.translateZ(this.velocity);
+    this.gameObject.transform.translateZ(this.velocity);
   }
 }
 
