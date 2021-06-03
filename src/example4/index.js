@@ -12,10 +12,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { GUI } from 'dat.gui';
 import globals from '../game-engine/globals';
 import {
-  GameObjectManager, InputManager, CameraInfo, rand,
+  GameObjectManager, InputManager, rand,
 } from '../game-engine/utils';
-import { Player } from './game-object';
+import { Player } from './game-objects';
 import { Animal } from '../game-engine/components';
+import { CameraInfo } from './components';
 
 globals.setInitial(
   {

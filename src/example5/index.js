@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import * as THREE from 'three';
-import { Player } from '../example4/game-object';
+import { Player } from './game-objects';
 import globals from '../game-engine/globals';
 import {
   GameObjectManager, InputManager,
