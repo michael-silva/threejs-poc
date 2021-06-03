@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server --open",
+    "start": "webpack serve --open",
     "build": "webpack --prod",
     "lint": "eslint ./src",
     "lint:fix": "npm run lint -- --fix",
@@ -23,18 +23,18 @@
   "homepage": "https://github.com/michael-silva/threejs-poc#readme",
   "devDependencies": {
     "@babel/core": "^7.14.3",
+    "@babel/eslint-parser": "^7.14.4",
+    "@babel/eslint-plugin": "^7.13.16",
     "@babel/preset-env": "^7.14.4",
-    "babel-eslint": "^10.1.0",
     "babel-loader": "^8.2.2",
-    "eslint": "^6.8.0",
+    "eslint": "^7.27.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-import-resolver-webpack": "^0.12.2",
-    "eslint-plugin-babel": "^5.3.1",
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-prettier": "^3.4.0",
-    "prettier": "^1.19.1",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12",
+    "prettier": "^2.3.0",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0",
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {

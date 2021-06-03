@@ -1,5 +1,5 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "env": {
     "es6": true,
     "browser": true,
@@ -9,7 +9,7 @@
     "airbnb-base"
   ],
   "plugins": [
-    "babel",
+    "@babel",
     "prettier"
   ],
   "settings": {
@@ -19,6 +19,7 @@
       }
     }
   },
+  "ignorePatterns": ["**/vendor/*.js"],
   "rules": {
     "class-methods-use-this": "off",
     "import/prefer-default-export": "off",

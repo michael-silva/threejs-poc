@@ -15,6 +15,7 @@ module.exports = {
     example2: './src/example2/index.js',
     example3: './src/example3/index.js',
     example4: './src/example4/index.js',
+    example5: './src/example5/index.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
