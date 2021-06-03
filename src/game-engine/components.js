@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { GUI } from 'dat.gui';
 import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 import globals from './globals';
 import {
@@ -36,20 +35,11 @@ export class SkinInstance extends Component {
   }
 }
 
-const labelContainerElem = document.querySelector('#labels');
-function showHideDebugInfo() {
-  labelContainerElem.style.display = globals.debug ? '' : 'none';
-}
-
-const gui = new GUI();
-gui.add(globals, 'debug').onChange(showHideDebugInfo);
-showHideDebugInfo();
-
 export class StateDisplayHelper extends Component {
   constructor(gameObject, size) {
     super(gameObject);
     this.elem = document.createElement('div');
-    labelContainerElem.appendChild(this.elem);
+    globals.labelContainerElem.appendChild(this.elem);
     this.pos = new THREE.Vector3();
 
     this.helper = new THREE.PolarGridHelper(size / 2, 1, 1, 16);

@@ -1,8 +1,8 @@
-import { SkinInstance, Note } from './components';
-import globals from './globals';
+import { SkinInstance, Note } from '../game-engine/components';
+import globals from '../game-engine/globals';
 import {
   Component, CoroutineRunner, rand, waitSeconds,
-} from './utils';
+} from '../game-engine/utils';
 
 export class Player extends Component {
   constructor(gameObject) {
