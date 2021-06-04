@@ -7,205 +7,66 @@
  */
 
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import {
+  ModelLoaderManager, GameObjectManager, MouseMovement, resizeRendererToDisplaySize,
+} from '../game-engine/utils';
+import globals from '../game-engine/globals';
+import { AttachedModel, LookAtMouse, Model } from './components';
 
-// Set our main variables
-let scene;
-let renderer;
-let camera;
-let model; // Our character
-let sword; // Our sword
-let neck; // Reference to the neck bone in the skeleton
-let waist; // Reference to the waist bone in the skeleton
-let possibleAnims; // Animations found in our file
-let mixer; // THREE.js animations mixer
-let idle; // Idle, the default state our character returns to
-const clock = new THREE.Clock(); // Used for anims, which run to a clock instead of frame rate
-// Used to check whether characters neck is being used in another anim
-let currentlyAnimating = false;
-const raycaster = new THREE.Raycaster(); // Used to detect the click on our character
-const FLOOR_YPOS = -11;
+const MODEL_NAME = 'bot'; // 'stacy'; // bot
+globals.setInitial({
+  debug: true,
+  time: 0,
+  deltaTime: 0,
+  FLOOR_YPOS: -11,
+  models: {
+    sword: { url: './assets/sword1.gltf' },
+    bot: { url: './assets/character.gltf' },
+    stacy: {
+      url: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb',
+      texture: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg',
+    },
+  },
+});
+
 const loaderAnim = document.getElementById('js-loader');
-// const MODEL_NAME = 'bot'; // 'stacy'
-let base;
+let then = 0;
+function render(now) {
+  // convert to seconds
+  globals.time = now * 0.001;
+  // make sure delta time isn't too big.
+  globals.deltaTime = Math.min(globals.time - then, 1 / 20);
+  then = globals.time;
 
-// eslint-disable-next-line no-unused-vars
-function loading() {
-  const MODEL_PATH = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
-  const stacyTex = new THREE.TextureLoader().load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
+  resizeRendererToDisplaySize(globals.camera, globals.renderer);
 
-  stacyTex.flipY = false; // we flip the texture so that its the right way up
+  // update();
+  globals.gameObjectManager.update(globals.inputManager);
+  // inputManager.update();
 
-  const stacyMat = new THREE.MeshPhongMaterial({
-    map: stacyTex,
-    color: 0xffffff,
-    skinning: true,
-  });
-  const loader = new GLTFLoader();
+  globals.renderer.render(globals.scene, globals.camera);
 
-  loader.load(
-    MODEL_PATH,
-    (gltf) => {
-      model = gltf.scene;
-      const fileAnimations = gltf.animations;
-      // Set the models initial scale
-      model.scale.set(7, 7, 7);
-      model.position.y = FLOOR_YPOS;
-      model.traverse((o) => {
-        if (o.isBone) {
-          console.log(o.name);
-        }
-        if (o.isMesh) {
-          o.castShadow = true;
-          o.receiveShadow = true;
-          o.material = stacyMat; // Add this line
-        }
-        // Reference the neck and waist bones
-        if (o.isBone && o.name === 'mixamorigNeck') {
-          neck = o;
-        }
-        if (o.isBone && o.name === 'mixamorigSpine') {
-          waist = o;
-        }
-      });
-
-      scene.add(model);
-
-      loaderAnim.remove();
-
-      mixer = new THREE.AnimationMixer(model);
-      const searchRegex = /^mixamorig(Spine|Neck)\.[a-z]*/i;
-      const clips = fileAnimations.filter((val) => val.name !== 'idle');
-      possibleAnims = clips.map((val) => {
-        let clip = THREE.AnimationClip.findByName(clips, val.name);
-        // filter by the tracks that don't use neck or spine bones
-        clip.tracks = clip.tracks.filter((track) => !searchRegex.test(track.name));
-        clip = mixer.clipAction(clip);
-        return clip;
-      });
-      const idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
-      // filter by the tracks that don't use neck or spine bones
-      idleAnim.tracks = idleAnim.tracks.filter((track) => !searchRegex.test(track.name));
-
-      idle = mixer.clipAction(idleAnim);
-      idle.play();
-    },
-    undefined, // We don't need this function
-    (error) => {
-      console.error(error);
-    },
-  );
+  requestAnimationFrame(render);
 }
-
-function loadingBot() {
-  const MODEL_PATH = './assets/character.gltf';
-  const loader = new GLTFLoader();
-
-  loader.load(
-    MODEL_PATH,
-    (gltf) => {
-      model = gltf.scene;
-      const fileAnimations = gltf.animations;
-      // Set the models initial scale
-      model.scale.set(7, 7, 7);
-      model.position.y = FLOOR_YPOS;
-      model.traverse((o) => {
-        if (o.isBone) {
-          console.log(o.name);
-        }
-        if (o.isMesh) {
-          o.castShadow = true;
-          o.receiveShadow = true;
-        }
-
-        // Reference the neck and waist bones
-        // if (o.isBone && o.name === 'mixamorigNeck') {
-        //   neck = o;
-        // }
-        // if (o.isBone && o.name === 'mixamorigSpine') {
-        //   waist = o;
-        // }
-      });
-
-      const hand = model.getObjectByName('mixamorigRightHand');
-      base = sword.getObjectByName('base');
-      hand.add(base);
-      base.scale.set(12, 12, 12);
-      base.rotation.x = 1.4;
-      base.position.x = hand.position.x + 16;
-      base.position.y = hand.position.y - 4;
-      base.position.z = hand.position.z - 7;
-
-      model.add(sword);
-      scene.add(model);
-      const skeleton = new THREE.SkeletonHelper(model);
-      skeleton.visible = true;
-      scene.add(skeleton);
-
-      loaderAnim.remove();
-
-      mixer = new THREE.AnimationMixer(model);
-      // const searchRegex = /^mixamorig(Spine|Neck)\.[a-z]*/i;
-      const clips = fileAnimations.filter((val) => val.name !== 'idle');
-
-      possibleAnims = clips.map((val) => {
-        let clip = THREE.AnimationClip.findByName(clips, val.name);
-        // filter by the tracks that don't use neck or spine bones
-        // clip.tracks = clip.tracks.filter((track) => !searchRegex.test(track.name));
-        clip = mixer.clipAction(clip);
-        return clip;
-      });
-
-      const idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
-      // filter by the tracks that don't use neck or spine bones
-      // idleAnim.tracks = idleAnim.tracks.filter((track) => !searchRegex.test(track.name));
-
-      idle = mixer.clipAction(idleAnim);
-      idle.play();
-    },
-    undefined, // We don't need this function
-    (error) => {
-      console.error(error);
-    },
-  );
-}
-
-function loadingSword() {
-  const MODEL_PATH = './assets/sword1.gltf';
-  const loader = new GLTFLoader();
-
-  loader.load(
-    MODEL_PATH,
-    (gltf) => {
-      sword = gltf.scene;
-      loadingBot();
-    },
-    undefined, // We don't need this function
-    (error) => {
-      console.error(error);
-    },
-  );
-}
-
-// loading();
-loadingSword();
 
 function init() {
   const canvas = document.querySelector('#canvas');
   const backgroundColor = 0xf1f1f1;
 
   // Init the scene
-  scene = new THREE.Scene();
+  const scene = new THREE.Scene();
+  globals.scene = scene;
   scene.background = new THREE.Color(backgroundColor);
   scene.fog = new THREE.Fog(backgroundColor, 60, 100);
 
   // Init the renderer
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.shadowMap.enabled = true;
   renderer.setPixelRatio(window.devicePixelRatio);
+  globals.renderer = renderer;
 
   // Add a camera
-  camera = new THREE.PerspectiveCamera(
+  const camera = new THREE.PerspectiveCamera(
     50,
     window.innerWidth / window.innerHeight,
     0.1,
@@ -214,6 +75,7 @@ function init() {
   camera.position.z = 30;
   camera.position.x = 0;
   camera.position.y = -3;
+  globals.camera = camera;
 
   // Add lights
   const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.61);
@@ -245,7 +107,7 @@ function init() {
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.rotation.x = -0.5 * Math.PI; // This is 90 degrees by the way
   floor.receiveShadow = true;
-  floor.position.y = FLOOR_YPOS;
+  floor.position.y = globals.FLOOR_YPOS;
   scene.add(floor);
 
   // just add a circle to background
@@ -256,150 +118,27 @@ function init() {
   sphere.position.y = -2.5;
   sphere.position.x = -0.25;
   scene.add(sphere);
+
+  const gameObject = globals.gameObjectManager.createGameObject(scene, 'model');
+  const model = globals.modelManager.getModel(MODEL_NAME);
+  gameObject.addComponent(Model, model);
+  if (MODEL_NAME === 'bot') gameObject.addComponent(AttachedModel, model, globals.modelManager.getModel('sword'));
+  if (MODEL_NAME === 'stacy')gameObject.addComponent(LookAtMouse, model);
+  globals.playerObject = gameObject;
+
+  loaderAnim.remove();
+  requestAnimationFrame(render);
 }
 
-init();
-
-// eslint-disable-next-line no-shadow
-function resizeRendererToDisplaySize(renderer) {
-  const canvas = renderer.domElement;
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  const canvasPixelWidth = canvas.width / window.devicePixelRatio;
-  const canvasPixelHeight = canvas.height / window.devicePixelRatio;
-
-  const needResize = canvasPixelWidth !== width || canvasPixelHeight !== height;
-  if (needResize) {
-    renderer.setSize(width, height, false);
-  }
-  return needResize;
+const gameObjectManager = new GameObjectManager();
+globals.gameObjectManager = gameObjectManager;
+const inputManager = new MouseMovement();
+globals.inputManager = inputManager;
+const modelManager = new ModelLoaderManager();
+globals.modelManager = modelManager;
+// eslint-disable-next-line no-restricted-syntax
+for (const [name, model] of Object.entries(globals.models)) {
+  modelManager.addModelGLTF(model, name);
 }
-
-function update() {
-  if (resizeRendererToDisplaySize(renderer)) {
-    const canvas = renderer.domElement;
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-  }
-
-  if (mixer) {
-    // console.log(sword.getWorldPosition());
-    mixer.update(clock.getDelta());
-  }
-
-  renderer.render(scene, camera);
-  requestAnimationFrame(update);
-}
-
-update();
-
-function getMouseDegrees(x, y, degreeLimit) {
-  let dx = 0;
-  let dy = 0;
-  let xdiff;
-  let xPercentage;
-  let ydiff;
-  let yPercentage;
-
-  const w = { x: window.innerWidth, y: window.innerHeight };
-
-  // Left (Rotates neck left between 0 and -degreeLimit)
-
-  // 1. If cursor is in the left half of screen
-  if (x <= w.x / 2) {
-    // 2. Get the difference between middle of screen and cursor position
-    xdiff = w.x / 2 - x;
-    // 3. Find the percentage of that difference (percentage toward edge of screen)
-    xPercentage = (xdiff / (w.x / 2)) * 100;
-    // 4. Convert that to a percentage of the maximum rotation we allow for the neck
-    dx = ((degreeLimit * xPercentage) / 100) * -1;
-  }
-  // Right (Rotates neck right between 0 and degreeLimit)
-  if (x >= w.x / 2) {
-    xdiff = x - w.x / 2;
-    xPercentage = (xdiff / (w.x / 2)) * 100;
-    dx = (degreeLimit * xPercentage) / 100;
-  }
-  // Up (Rotates neck up between 0 and -degreeLimit)
-  if (y <= w.y / 2) {
-    ydiff = w.y / 2 - y;
-    yPercentage = (ydiff / (w.y / 2)) * 100;
-    // Note that I cut degreeLimit in half when she looks up
-    dy = (((degreeLimit * 0.5) * yPercentage) / 100) * -1;
-  }
-
-  // Down (Rotates neck down between 0 and degreeLimit)
-  if (y >= w.y / 2) {
-    ydiff = y - w.y / 2;
-    yPercentage = (ydiff / (w.y / 2)) * 100;
-    dy = (degreeLimit * yPercentage) / 100;
-  }
-  return { x: dx, y: dy };
-}
-
-function getMousePos(e) {
-  return { x: e.clientX, y: e.clientY };
-}
-
-function moveJoint(mouse, joint, degreeLimit) {
-  const degrees = getMouseDegrees(mouse.x, mouse.y, degreeLimit);
-  joint.rotation.y = THREE.Math.degToRad(degrees.x);
-  joint.rotation.x = THREE.Math.degToRad(degrees.y);
-}
-
-function playModifierAnimation(from, fSpeed, to, tSpeed) {
-  to.setLoop(THREE.LoopOnce);
-  to.reset();
-  to.play();
-  from.crossFadeTo(to, fSpeed, true);
-  setTimeout(() => {
-    from.enabled = true;
-    to.crossFadeTo(from, tSpeed, true);
-    currentlyAnimating = false;
-  // eslint-disable-next-line no-underscore-dangle
-  }, to._clip.duration * 1000 - ((tSpeed + fSpeed) * 1000));
-}
-
-// Get a random animation, and play it
-function playOnClick() {
-  const anim = Math.floor(Math.random() * possibleAnims.length) + 0;
-  playModifierAnimation(idle, 0.25, possibleAnims[anim], 0.25);
-}
-
-function raycast(e, touch = false) {
-  const mouse = {};
-  if (touch) {
-    mouse.x = 2 * (e.changedTouches[0].clientX / window.innerWidth) - 1;
-    mouse.y = 1 - 2 * (e.changedTouches[0].clientY / window.innerHeight);
-  }
-  else {
-    mouse.x = 2 * (e.clientX / window.innerWidth) - 1;
-    mouse.y = 1 - 2 * (e.clientY / window.innerHeight);
-  }
-  // update the picking ray with the camera and mouse position
-  raycaster.setFromCamera(mouse, camera);
-
-  // calculate objects intersecting the picking ray
-  const intersects = raycaster.intersectObjects(scene.children, true);
-
-  if (intersects.length) {
-    // const { object } = intersects[0];
-    // if (object.name === MODEL_NAME) {
-    if (!currentlyAnimating) {
-      currentlyAnimating = true;
-      playOnClick();
-    }
-    // }
-  }
-}
-
-document.addEventListener('mousemove', (e) => {
-  const mousecoords = getMousePos(e);
-  if (neck && waist) {
-    moveJoint(mousecoords, neck, 50);
-    moveJoint(mousecoords, waist, 30);
-  }
-});
-
-window.addEventListener('click', (e) => raycast(e));
-window.addEventListener('touchend', (e) => raycast(e, true));
+modelManager.onLoad(init);
+modelManager.loadAll();
